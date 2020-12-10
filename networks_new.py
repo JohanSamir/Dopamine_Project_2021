@@ -20,6 +20,10 @@ env_inf = {"CartPole":{"MIN_VALS": onp.array([-2.4, -5., -math.pi/12., -math.pi*
             "MountainCar":{"MIN_VALS":onp.array([-1.2, -0.07]),"MAX_VALS": onp.array([0.6, 0.07])}
             }
 
+arq_inf = {"conv_act_layers":{"ELU":jax.nn.elu(x, alpha=1.0), "Leaky":jax.nn.leaky_relu(x, negative_slope=0.01), "ReLU":jax.nn.relu(x), "Sigmoid":jax.nn.sigmoid(x), "Swish": jax.nn.swish(x)},
+           "dens_act_layers":{"ELU":jax.nn.elu(x, alpha=1.0), "Leaky":jax.nn.leaky_relu(x, negative_slope=0.01), "ReLU":jax.nn.relu(x), "Sigmoid":jax.nn.sigmoid(x), "Swish": jax.nn.swish(x)},
+           "initializers_layers":{"lecun_normal":nn.initializers.lecun_normal(), "lecun_uniform":nn.initializers.lecun_uniform(), "xavier_normal":nn.initializers.xavier_normal(),"xavier_uniform":nn.initializers.xavier_uniform()}}
+
 #---------------------------------------------------------------------------------------------------------------------
 
 gin.constant('jax_networks.LUNALANDER_OBSERVATION_DTYPE', jnp.float64)
@@ -72,8 +76,9 @@ class DQNNetwork(nn.Module):
       x = x.squeeze(3)
       x = x[None, ...]
       x = x.astype(jnp.float32)
-      x = nn.Conv(x, features=16, kernel_size=(3, 3, 3), strides=(1, 1, 1),  kernel_init=nn.initializers.xavier_uniform())
-      x = jax.nn.relu(x)
+      x = nn.Conv(x, features=16, kernel_size=(3, 3, 3), strides=(1, 1, 1),  kernel_init=arq_inf["initializers_layers"][TODO])
+      #x = jax.nn.relu(x)
+      x = arq_inf['conv_act_layers'][TODO]
       x = x.reshape((x.shape[0], -1))
 
     elif net_conf == 'atari':
@@ -82,14 +87,17 @@ class DQNNetwork(nn.Module):
       x = x[None, ...]
       x = x.astype(jnp.float32) / 255.
       x = nn.Conv(x, features=32, kernel_size=(8, 8), strides=(4, 4),
-                  kernel_init=nn.initializers.xavier_uniform())
-      x = jax.nn.relu(x)
+                  kernel_init=arq_inf["initializers_layers"][TODO])
+      #x = jax.nn.relu(x)
+      x = arq_inf['conv_act_layers'][TODO]
       x = nn.Conv(x, features=64, kernel_size=(4, 4), strides=(2, 2),
-                  kernel_init=nn.initializers.xavier_uniform())
-      x = jax.nn.relu(x)
+                  kernel_init=arq_inf["initializers_layers"][TODO])
+      #x = jax.nn.relu(x)
+      x = arq_inf['conv_act_layers'][TODO]
       x = nn.Conv(x, features=64, kernel_size=(3, 3), strides=(1, 1),
-                  kernel_init=nn.initializers.xavier_uniform())
-      x = jax.nn.relu(x)
+                  kernel_init=arq_inf["initializers_layers"][TODO])
+      #x = jax.nn.relu(x)
+      x = arq_inf['conv_act_layers'][TODO]
       x = x.reshape((x.shape[0], -1))  # flatten
 
     elif net_conf == 'classic':
@@ -108,11 +116,12 @@ class DQNNetwork(nn.Module):
         return NoisyNetwork(x, features)
     else:
       def net(x, features):
-        return nn.Dense(x, features, kernel_init=nn.initializers.xavier_uniform())
+        return nn.Dense(x, features, kernel_init=arq_inf["initializers_layers"][TODO])
 
     for _ in range(hidden_layer):
       x = net(x, features=neurons)
-      x = jax.nn.relu(x)
+      #x = jax.nn.relu(x)
+      x = arq_inf['dens_act_layers'][TODO]
 
     adv = net(x, features=num_actions)
     val = net(x, features=1)
